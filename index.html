@@ -5,41 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>PCM-опросник (экспресс)</title>
 
-<!-- Favicon: замени FILE_ID на ID PNG в Google Drive -->
 <link rel="icon" type="image/png" href="favicon.png">
 
 <style>
-  /* ===== Design tokens (легко перекрасить под референс) ===== */
   :root{
-    --bg:#f6f7fb;
-    --surface:#ffffff;
-    --surface-2:#f2f4f7;
-    --text:#0f172a;
-    --muted:#6b7280;
-    --brand:#ffdd2d;    /* жёлтая «банковская» */
-    --brand-2:#7c3aed;  /* лиловый акцент для градиента */
-    --ok:#16a34a;
-    --danger:#ef4444;
-    --border:#e6e8ee;
-    --radius:18px;
-    --shadow:0 10px 28px rgba(15,23,42,.08);
-    --fs:1; /* масштаб Aa */
+    --bg:#f6f7fb; --surface:#ffffff; --surface-2:#f2f4f7;
+    --text:#0f172a; --muted:#6b7280;
+    --brand:#ffdd2d; --brand-2:#7c3aed;
+    --ok:#16a34a; --danger:#ef4444; --border:#e6e8ee;
+    --radius:18px; --shadow:0 10px 28px rgba(15,23,42,.08);
+    --fs:1;
   }
   html[data-theme="dark"]{
-    --bg:#0b0d10;
-    --surface:#12161c;
-    --surface-2:#0f141b;
-    --text:#e7eef7;
-    --muted:#9aa7b6;
-    --brand:#ffc700;
-    --brand-2:#8ef0c5;
-    --ok:#72e09b;
-    --danger:#ff7a7a;
-    --border:#223042;
+    --bg:#0b0d10; --surface:#12161c; --surface-2:#0f141b;
+    --text:#e7eef7; --muted:#9aa7b6;
+    --brand:#ffc700; --brand-2:#8ef0c5;
+    --ok:#72e09b; --danger:#ff7a7a; --border:#223042;
     --shadow:0 12px 30px rgba(0,0,0,.35);
   }
 
-  /* ===== Base ===== */
   *{box-sizing:border-box}
   html{font-size:calc(16px * var(--fs));}
   html,body{margin:0; padding:0; background:var(--bg); color:var(--text); -webkit-text-size-adjust:100%;}
@@ -50,26 +34,18 @@
   h2{font-size:clamp(1.05rem,2.2vw,1.25rem); margin:18px 0 10px}
   h3{margin:0 0 8px 0; font-size:1rem}
   p{margin:0}
-
   .row{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
   .badge{font-size:.85rem; color:var(--muted); border:1px solid var(--border); background:var(--surface-2); border-radius:999px; padding:6px 10px}
   .muted{color:var(--muted)}
-  .text-center{text-align:center}
 
-  /* ===== Sticky topbar with counter ===== */
-  .topbar{
-    position:sticky; top:0; z-index:50;
-    padding: max(8px, env(safe-area-inset-top)) 8px 8px;
-    backdrop-filter: saturate(160%) blur(8px);
-    background: color-mix(in srgb, var(--bg) 78%, transparent);
+  /* Sticky topbar with counter */
+  .topbar{position:sticky; top:0; z-index:50; padding:max(8px, env(safe-area-inset-top)) 8px 8px;
+    backdrop-filter:saturate(160%) blur(8px);
+    background:color-mix(in srgb, var(--bg) 78%, transparent);
     border-bottom:1px solid color-mix(in srgb, var(--border) 70%, transparent);
   }
   .topinner{max-width:860px; margin:0 auto; display:flex; gap:10px; align-items:center}
-  .counter{
-    display:flex; align-items:center; gap:10px;
-    background:var(--surface); border:1px solid var(--border);
-    border-radius:999px; padding:8px 12px; box-shadow:var(--shadow);
-  }
+  .counter{display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:8px 12px; box-shadow:var(--shadow)}
   .dot{width:10px; height:10px; border-radius:50%; background:radial-gradient(circle at 30% 30%, var(--brand), var(--brand-2))}
   .counter b{font-size:1rem}
   .iconbar{display:flex; gap:8px; margin-left:auto}
@@ -80,14 +56,8 @@
   .danger{background:var(--danger); color:#fff}
   button:disabled{opacity:.7}
 
-  /* ===== Cards ===== */
-  header, .card{
-    background:var(--surface); border:1px solid var(--border);
-    border-radius:var(--radius); box-shadow:var(--shadow);
-    padding:clamp(12px,2.5vw,16px); margin:12px 0;
-  }
+  header, .card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:clamp(12px,2.5vw,16px); margin:12px 0}
 
-  /* ===== Questions ===== */
   .grid{display:grid; grid-template-columns:1fr; gap:10px}
   .q{background:var(--surface-2); border:1px dashed var(--border); border-radius:14px; padding:12px}
   .tag{display:inline-flex; align-items:center; font-size:.78rem; color:var(--muted); border:1px solid var(--border); background:var(--surface); border-radius:999px; padding:3px 8px; margin-left:6px}
@@ -98,37 +68,40 @@
   .opt:has(input:checked){outline:2px solid color-mix(in srgb, var(--brand) 60%, transparent); border-color:var(--brand)}
   .opt:focus-within{outline:2px solid color-mix(in srgb, var(--brand) 45%, transparent)}
 
-  /* ===== Totals bars ===== */
   .bar{height:10px; background:var(--surface-2); border:1px solid var(--border); border-radius:999px; overflow:hidden}
   .bar>span{display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--brand),var(--brand-2));}
-
   .type{display:grid; grid-template-columns:minmax(120px,160px) 1fr; gap:10px; align-items:center}
 
-  /* ===== Result callouts ===== */
   .callouts{display:grid; grid-template-columns:1fr; gap:10px; margin:8px 0}
   @media (min-width:680px){ .callouts{grid-template-columns:1fr 1fr;} }
-  .callout{
-    background:linear-gradient(92deg, color-mix(in srgb, var(--brand) 12%, transparent), color-mix(in srgb, var(--brand-2) 12%, transparent));
-    border:1px solid var(--border); border-radius:14px; padding:12px
-  }
+  .callout{background:linear-gradient(92deg, color-mix(in srgb, var(--brand) 12%, transparent), color-mix(in srgb, var(--brand-2) 12%, transparent));
+    border:1px solid var(--border); border-radius:14px; padding:12px}
   .callout h4{margin:0 0 6px 0; font-size:1rem}
   .callout .big{font-size:1.1rem; font-weight:700}
   .callout .muted{display:block; margin-top:2px}
 
-  /* ===== Help modal ===== */
   .modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; padding:16px; background:rgba(0,0,0,.5); z-index:9999}
   .modal .inner{background:var(--surface); border:1px solid var(--border); border-radius:16px; max-width:720px; width:100%; padding:16px; box-shadow:var(--shadow)}
   .modal h3{margin:0 0 6px 0}
 
-  /* Theme icons */
   #themeIconSun{display:none}
   html[data-theme="dark"] #themeIconMoon{display:none}
   html[data-theme="dark"] #themeIconSun{display:inline}
+
+  /* === Печать: экспортируем только блок Результаты === */
+  @media print {
+    html, body { background:#fff !important; }
+    .topbar { display:none !important; }
+    .wrap > * { display:none !important; }
+    #results { display:block !important; box-shadow:none !important; border:none !important; margin:0 !important; }
+    #results .row button { display:none !important; }
+    h1, h2, h3 { color:#111 !important; }
+  }
 </style>
 </head>
 <body>
 
-  <!-- Sticky-панель со счётчиком (всегда видна) -->
+  <!-- Sticky-панель со счётчиком -->
   <div class="topbar">
     <div class="topinner">
       <div class="counter" aria-live="polite">
@@ -177,7 +150,7 @@
     <section class="card"><h2>Блок 5. Каким тебя видят другие?</h2><div id="block5" class="grid"></div></section>
     <section class="card"><h2>Блок 6. Триггеры доверия</h2><div id="block6" class="grid"></div></section>
 
-    <section class="card text-center">
+    <section class="card" style="text-align:center">
       <button class="primary" id="calcBtn" style="width:100%">Посчитать результат</button>
     </section>
 
@@ -215,7 +188,7 @@
   <div class="modal" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
     <div class="inner">
       <h3 id="helpTitle">О PCM-опроснике</h3>
-      <p class="muted">36 вопросов: базовый тип (1–18), текущая фаза (19–36). Данные — только в вашем браузере. Экспорт PDF — снимок блока результатов.</p>
+      <p class="muted">36 вопросов: базовый тип (1–18), текущая фаза (19–36). Данные — только в вашем браузере. Экспорт PDF — через системный диалог печати.</p>
       <ul>
         <li>Шкала 1–5: 1 — «не про меня», 5 — «очень про меня».</li>
         <li>«Пройти ещё раз» сбрасывает ответы.</li>
@@ -227,11 +200,7 @@
     </div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
   <script>
-  /* ===== Данные ===== */
   const QUESTIONS = [
     {id:1,text:"Мне важно, чтобы меня любили и принимали.",type:"Harmonizer"},
     {id:2,text:"Мне важно, чтобы ценили мои знания и компетентность.",type:"Thinker"},
@@ -285,14 +254,13 @@
     Promoter:"Ценность — действие и результат. Сильные стороны: решительность, влияние. Риск — импульсивность."
   };
 
-  /* ===== Рендер вопроса ===== */
   function makeQuestion(q){
-    const div = document.createElement('div');
-    div.className = 'q';
-    div.innerHTML = `
+    const div=document.createElement('div');
+    div.className='q';
+    div.innerHTML=`
       <h3>${q.id}. ${q.text} <span class="tag">${TYPE_LABELS[q.type]}</span></h3>
       <div class="optwrap" role="radiogroup" aria-label="Шкала 1–5">
-        ${[1,2,3,4,5].map(v => `
+        ${[1,2,3,4,5].map(v=>`
           <label class="opt">
             <input type="radio" name="q${q.id}" value="${v}">
             <span>${v}</span>
@@ -303,13 +271,13 @@
   }
 
   function mountBlocks(){
-    const blocks = [
-      {range:[1,6],  el:document.getElementById('block1')},
+    const blocks=[
+      {range:[1,6], el:document.getElementById('block1')},
       {range:[7,12], el:document.getElementById('block2')},
-      {range:[13,18],el:document.getElementById('block3')},
-      {range:[19,24],el:document.getElementById('block4')},
-      {range:[25,30],el:document.getElementById('block5')},
-      {range:[31,36],el:document.getElementById('block6')},
+      {range:[13,18], el:document.getElementById('block3')},
+      {range:[19,24], el:document.getElementById('block4')},
+      {range:[25,30], el:document.getElementById('block5')},
+      {range:[31,36], el:document.getElementById('block6')},
     ];
     blocks.forEach(b=>{
       for(let i=b.range[0]-1;i<b.range[1];i++){ b.el.appendChild(makeQuestion(QUESTIONS[i])); }
@@ -317,7 +285,6 @@
   }
   mountBlocks();
 
-  /* ===== LocalStorage ===== */
   const KEY='pcm_answers_ru_v1';
   function saveToLS(){
     const data={};
@@ -329,39 +296,31 @@
     return data;
   }
   function loadFromLS(){
-    const raw=localStorage.getItem(KEY);
-    if(!raw) return {};
+    const raw=localStorage.getItem(KEY); if(!raw) return {};
     try{return JSON.parse(raw)||{}}catch(_){return {}}
   }
   function applyAnswers(obj){
     QUESTIONS.forEach(q=>{
-      const v=obj[q.id];
-      if(!v) return;
+      const v=obj[q.id]; if(!v) return;
       const input=document.querySelector(`input[name="q${q.id}"][value="${v}"]`);
       if(input) input.checked=true;
     });
     updateProgress();
   }
 
-  /* ===== Счётчик (осталось/всего) ===== */
   function updateProgress(){
-    const total = 36;
-    let filled = 0;
-    QUESTIONS.forEach(q=>{
-      if(document.querySelector(`input[name="q${q.id}"]:checked`)) filled++;
-    });
-    const left = total - filled;
-    document.getElementById('leftNum').textContent = String(left);
-    document.getElementById('totalNum').textContent = String(total);
+    const total=36; let filled=0;
+    QUESTIONS.forEach(q=>{ if(document.querySelector(`input[name="q${q.id}"]:checked`)) filled++; });
+    const left=total-filled;
+    document.getElementById('leftNum').textContent=String(left);
+    document.getElementById('totalNum').textContent=String(total);
   }
-
   document.body.addEventListener('change', (e)=>{
     if(e.target && e.target.name && e.target.name.startsWith('q')){
       saveToLS(); updateProgress();
     }
   });
 
-  /* ===== Подсчёт ===== */
   function calcScores(ans){
     const totals={Harmonizer:0,Thinker:0,Persister:0,Rebel:0,Imaginer:0,Promoter:0};
     const base={Harmonizer:0,Thinker:0,Persister:0,Rebel:0,Imaginer:0,Promoter:0};
@@ -392,8 +351,8 @@
   let LAST_CALC=null;
   function showResults(sc){
     const totalsEl=document.getElementById('totals'); renderBars(totalsEl, sc.totals);
-    const baseTop={ type:bestOf(sc.base)[0][0],  score:bestOf(sc.base)[0][1] };
-    const phaseTop={ type:bestOf(sc.phase)[0][0], score:bestOf(sc.phase)[0][1] };
+    const baseTop={type:bestOf(sc.base)[0][0], score:bestOf(sc.base)[0][1]};
+    const phaseTop={type:bestOf(sc.phase)[0][0], score:bestOf(sc.phase)[0][1]};
 
     const bp=document.getElementById('basePhase');
     bp.innerHTML=`
@@ -426,7 +385,6 @@
     LAST_CALC={totals:sc.totals, base:sc.base, phase:sc.phase, baseTop, phaseTop};
   }
 
-  /* ===== Сброс ===== */
   function resetAll(){
     localStorage.removeItem(KEY);
     document.querySelectorAll('input[type="radio"]').forEach(i=>i.checked=false);
@@ -436,7 +394,6 @@
     window.scrollTo({top:0, behavior:'smooth'});
   }
 
-  /* ===== Тема ===== */
   const themeToggleBtn=document.getElementById('themeToggleBtn');
   function applyTheme(theme){ document.documentElement.setAttribute('data-theme', theme); localStorage.setItem('theme', theme); }
   themeToggleBtn.addEventListener('click', ()=>{
@@ -444,7 +401,6 @@
     applyTheme(newTheme);
   });
 
-  /* ===== Масштаб текста ===== */
   const fontBtn=document.getElementById('fontBtn');
   function applyFontScale(scale){ document.documentElement.style.setProperty('--fs', scale); localStorage.setItem('fontScale', String(scale)); fontBtn.textContent=scale>1?'Aa+':'Aa'; }
   fontBtn.addEventListener('click', ()=>{
@@ -453,7 +409,6 @@
     applyFontScale(next);
   });
 
-  /* ===== Справка ===== */
   const helpBtn=document.getElementById('helpBtn'), helpModal=document.getElementById('helpModal'), helpCloseBtn=document.getElementById('helpCloseBtn');
   function openHelp(){ helpModal.style.display='flex'; }
   function closeHelp(){ helpModal.style.display='none'; }
@@ -462,23 +417,24 @@
   helpModal.addEventListener('click', (e)=>{ if(e.target===helpModal) closeHelp(); });
   document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeHelp(); });
 
-  /* ===== Экспорт PDF ===== */
+  /* === Экспорт в PDF: системный диалог печати (надёжно на GitHub Pages) === */
   function exportPDF(){
+    const btn=document.getElementById('exportPdfBtn');
+    const original=btn.textContent;
     const resultsEl=document.getElementById('results');
     if(resultsEl.style.display==='none'){ alert('Сначала посчитайте результаты.'); return; }
-    const originalTheme=document.documentElement.getAttribute('data-theme'); applyTheme('light');
-    const pdfBtn=document.getElementById('exportPdfBtn'); const originalText=pdfBtn.textContent; pdfBtn.disabled=true; pdfBtn.textContent='Генерация...';
-    html2canvas(resultsEl,{scale:2}).then(canvas=>{
-      const imgData=canvas.toDataURL('image/png'); const { jsPDF }=window.jspdf; const pdf=new jsPDF('p','mm','a4');
-      const pdfW=pdf.internal.pageSize.getWidth(), pdfH=pdf.internal.pageSize.getHeight();
-      const ratio=canvas.width/canvas.height; let imgW=pdfW-20, imgH=imgW/ratio; if(imgH>pdfH-20){imgH=pdfH-20; imgW=imgH*ratio;}
-      const x=(pdfW-imgW)/2, y=10; pdf.text('Результаты PCM-опросника', pdfW/2, 7, {align:'center'}); pdf.addImage(imgData,'PNG',x,y,imgW,imgH); pdf.save('pcm_results.pdf');
-      applyTheme(originalTheme); pdfBtn.disabled=false; pdfBtn.textContent=originalText;
-    }).catch(err=>{ console.error(err); alert('Не удалось создать PDF.'); applyTheme(originalTheme); pdfBtn.disabled=false; pdfBtn.textContent=originalText; });
+    btn.disabled=true; btn.textContent='Открываю диалог...';
+    setTimeout(()=>{ window.print(); setTimeout(()=>{ btn.disabled=false; btn.textContent=original; }, 400); }, 50);
   }
 
-  /* ===== Поделиться опросником ===== */
-  async function shareSurvey(){
+  document.getElementById('calcBtn').addEventListener('click', ()=>{
+    const ans=saveToLS(); const filled=Object.keys(ans).length;
+    if(filled<QUESTIONS.length){ alert(`Пожалуйста, ответьте на все 36 вопросов. Заполнено: ${filled}.`); return; }
+    const sc=calcScores(ans); showResults(sc);
+  });
+  document.getElementById('exportPdfBtn').addEventListener('click', exportPDF);
+  document.getElementById('restartBtn').addEventListener('click', resetAll);
+  document.getElementById('shareSurveyBtn').addEventListener('click', async ()=>{
     const url=location.href.split('#')[0];
     const shareData={title:'PCM-опросник (экспресс)', text:'Пройди экспресс PCM-опросник (36 вопросов):', url};
     if(navigator.share){ try{ await navigator.share(shareData);}catch(e){console.error(e);} }
@@ -488,19 +444,8 @@
         const btn=document.getElementById('shareSurveyBtn'); const t=btn.textContent; btn.textContent='Ссылка скопирована!'; setTimeout(()=>btn.textContent=t,2000);
       }catch(e){ alert(`Ссылка на опросник: ${url}`); }
     }
-  }
-
-  /* ===== Кнопки ===== */
-  document.getElementById('calcBtn').addEventListener('click', ()=>{
-    const ans=saveToLS(); const filled=Object.keys(ans).length;
-    if(filled<QUESTIONS.length){ alert(`Пожалуйста, ответьте на все 36 вопросов. Заполнено: ${filled}.`); return; }
-    const sc=calcScores(ans); showResults(sc);
   });
-  document.getElementById('exportPdfBtn').addEventListener('click', exportPDF);
-  document.getElementById('restartBtn').addEventListener('click', resetAll);
-  document.getElementById('shareSurveyBtn').addEventListener('click', shareSurvey);
 
-  /* ===== First load ===== */
   const savedTheme=localStorage.getItem('theme')||'light'; applyTheme(savedTheme);
   const savedFont=parseFloat(localStorage.getItem('fontScale')||'1'); applyFontScale(savedFont);
   applyAnswers(loadFromLS());
