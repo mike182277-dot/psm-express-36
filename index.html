@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PCM-опросник (экспресс)</title>
+
+<!-- Favicon: замени FILE_ID на ID PNG в Google Drive -->
+<link rel="icon" type="image/png" href="https://drive.google.com/uc?export=view&id=FILE_ID">
+
+<style>
+  /* ===== Design tokens (легко перекрасить под референс) ===== */
+  :root{
+    --bg:#f6f7fb;
+    --surface:#ffffff;
+    --surface-2:#f2f4f7;
+    --text:#0f172a;
+    --muted:#6b7280;
+    --brand:#ffdd2d;    /* жёлтая «банковская» */
+    --brand-2:#7c3aed;  /* лиловый акцент для градиента */
+    --ok:#16a34a;
+    --danger:#ef4444;
+    --border:#e6e8ee;
+    --radius:18px;
+    --shadow:0 10px 28px rgba(15,23,42,.08);
+    --fs:1; /* масштаб Aa */
+  }
+  html[data-theme="dark"]{
+    --bg:#0b0d10;
+    --surface:#12161c;
+    --surface-2:#0f141b;
+    --text:#e7eef7;
+    --muted:#9aa7b6;
+    --brand:#ffc700;
+    --brand-2:#8ef0c5;
+    --ok:#72e09b;
+    --danger:#ff7a7a;
+    --border:#223042;
+    --shadow:0 12px 30px rgba(0,0,0,.35);
+  }
+
+  /* ===== Base ===== */
+  *{box-sizing:border-box}
+  html{font-size:calc(16px * var(--fs));}
+  html,body{margin:0; padding:0; background:var(--bg); color:var(--text); -webkit-text-size-adjust:100%;}
+  body{min-height:100dvh;}
+  .wrap{max-width:860px; margin:0 auto; padding:clamp(10px,2.5vw,18px);}
+
+  h1{margin:0; font-size:clamp(1.25rem, 2.8vw, 1.6rem); line-height:1.15}
+  h2{font-size:clamp(1.05rem,2.2vw,1.25rem); margin:18px 0 10px}
+  h3{margin:0 0 8px 0; font-size:1rem}
+  p{margin:0}
+
+  .row{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+  .badge{font-size:.85rem; color:var(--muted); border:1px solid var(--border); background:var(--surface-2); border-radius:999px; padding:6px 10px}
+  .muted{color:var(--muted)}
+  .text-center{text-align:center}
+
+  /* ===== Sticky topbar with counter ===== */
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    padding: max(8px, env(safe-area-inset-top)) 8px 8px;
+    backdrop-filter: saturate(160%) blur(8px);
+    background: color-mix(in srgb, var(--bg) 78%, transparent);
+    border-bottom:1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  }
+  .topinner{max-width:860px; margin:0 auto; display:flex; gap:10px; align-items:center}
+  .counter{
+    display:flex; align-items:center; gap:10px;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:999px; padding:8px 12px; box-shadow:var(--shadow);
+  }
+  .dot{width:10px; height:10px; border-radius:50%; background:radial-gradient(circle at 30% 30%, var(--brand), var(--brand-2))}
+  .counter b{font-size:1rem}
+  .iconbar{display:flex; gap:8px; margin-left:auto}
+  button{cursor:pointer; border:none; border-radius:12px; padding:12px 14px; font-weight:600; min-height:44px}
+  .ghost{background:var(--surface-2); color:var(--text); border:1px solid var(--border)}
+  .primary{background:linear-gradient(92deg,var(--brand),var(--brand-2)); color:#111}
+  .ok{background:var(--ok); color:#00140a}
+  .danger{background:var(--danger); color:#fff}
+  button:disabled{opacity:.7}
+
+  /* ===== Cards ===== */
+  header, .card{
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:clamp(12px,2.5vw,16px); margin:12px 0;
+  }
+
+  /* ===== Questions ===== */
+  .grid{display:grid; grid-template-columns:1fr; gap:10px}
+  .q{background:var(--surface-2); border:1px dashed var(--border); border-radius:14px; padding:12px}
+  .tag{display:inline-flex; align-items:center; font-size:.78rem; color:var(--muted); border:1px solid var(--border); background:var(--surface); border-radius:999px; padding:3px 8px; margin-left:6px}
+
+  .optwrap{display:grid; grid-template-columns:repeat(5, minmax(46px, 1fr)); gap:8px; margin-top:6px}
+  .opt{display:flex; align-items:center; justify-content:center; gap:6px; padding:12px 0; background:var(--surface); border:1px solid var(--border); border-radius:12px; user-select:none}
+  .opt input{position:absolute; opacity:0; pointer-events:none}
+  .opt:has(input:checked){outline:2px solid color-mix(in srgb, var(--brand) 60%, transparent); border-color:var(--brand)}
+  .opt:focus-within{outline:2px solid color-mix(in srgb, var(--brand) 45%, transparent)}
+
+  /* ===== Totals bars ===== */
+  .bar{height:10px; background:var(--surface-2); border:1px solid var(--border); border-radius:999px; overflow:hidden}
+  .bar>span{display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--brand),var(--brand-2));}
+
+  .type{display:grid; grid-template-columns:minmax(120px,160px) 1fr; gap:10px; align-items:center}
+
+  /* ===== Result callouts ===== */
+  .callouts{display:grid; grid-template-columns:1fr; gap:10px; margin:8px 0}
+  @media (min-width:680px){ .callouts{grid-template-columns:1fr 1fr;} }
+  .callout{
+    background:linear-gradient(92deg, color-mix(in srgb, var(--brand) 12%, transparent), color-mix(in srgb, var(--brand-2) 12%, transparent));
+    border:1px solid var(--border); border-radius:14px; padding:12px
+  }
+  .callout h4{margin:0 0 6px 0; font-size:1rem}
+  .callout .big{font-size:1.1rem; font-weight:700}
+  .callout .muted{display:block; margin-top:2px}
+
+  /* ===== Help modal ===== */
+  .modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; padding:16px; background:rgba(0,0,0,.5); z-index:9999}
+  .modal .inner{background:var(--surface); border:1px solid var(--border); border-radius:16px; max-width:720px; width:100%; padding:16px; box-shadow:var(--shadow)}
+  .modal h3{margin:0 0 6px 0}
+
+  /* Theme icons */
+  #themeIconSun{display:none}
+  html[data-theme="dark"] #themeIconMoon{display:none}
+  html[data-theme="dark"] #themeIconSun{display:inline}
+</style>
+</head>
+<body>
+
+  <!-- Sticky-панель со счётчиком (всегда видна) -->
+  <div class="topbar">
+    <div class="topinner">
+      <div class="counter" aria-live="polite">
+        <span class="dot"></span>
+        <span class="muted">Осталось</span>
+        <b id="leftNum">36</b>
+        <span class="muted">/ Всего</span>
+        <b id="totalNum">36</b>
+      </div>
+      <div class="iconbar">
+        <button class="ghost" id="fontBtn" title="Размер текста: Aa/Aa+">Aa</button>
+        <button class="ghost" id="helpBtn" title="Справка">?</button>
+        <button class="ghost" id="themeToggleBtn" aria-label="Сменить тему" title="Светлая/тёмная">
+          <svg id="themeIconSun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          <svg id="themeIconMoon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <header>
+      <h1>PCM-опросник (экспресс, 36 пунктов)</h1>
+      <div class="row" style="margin-top:8px">
+        <span class="badge">Модель: Process Communication Model (Taibi Kahler)</span>
+        <span class="badge">Язык: RU</span>
+      </div>
+      <p class="muted" style="margin-top:8px">
+        Отвечай по шкале 1–5. Итог покажет <b>базовый тип</b> и <b>текущую фазу</b>. Данные хранятся локально.
+      </p>
+    </header>
+
+    <section class="card">
+      <h2>Шкала ответа</h2>
+      <div class="row">
+        <span class="badge">1 — Совсем не про меня</span>
+        <span class="badge">3 — Нейтрально</span>
+        <span class="badge">5 — Очень про меня</span>
+      </div>
+    </section>
+
+    <section class="card"><h2>Блок 1. Что для тебя важнее всего?</h2><div id="block1" class="grid"></div></section>
+    <section class="card"><h2>Блок 2. Как ты обычно общаешься?</h2><div id="block2" class="grid"></div></section>
+    <section class="card"><h2>Блок 3. Что тебя заряжает?</h2><div id="block3" class="grid"></div></section>
+    <section class="card"><h2>Блок 4. Как ты ведёшь себя в стрессе?</h2><div id="block4" class="grid"></div></section>
+    <section class="card"><h2>Блок 5. Каким тебя видят другие?</h2><div id="block5" class="grid"></div></section>
+    <section class="card"><h2>Блок 6. Триггеры доверия</h2><div id="block6" class="grid"></div></section>
+
+    <section class="card text-center">
+      <button class="primary" id="calcBtn" style="width:100%">Посчитать результат</button>
+    </section>
+
+    <section class="card" id="results" style="display:none">
+      <h2>Результаты</h2>
+
+      <div class="callouts" id="callouts"></div>
+
+      <div class="grid" style="gap:14px">
+        <div class="card" style="padding:12px; margin:0">
+          <h3>Итоговые баллы (все 36 вопросов)</h3>
+          <div id="totals"></div>
+        </div>
+        <div class="card" style="padding:12px; margin:0">
+          <h3>Интерпретация</h3>
+          <p class="muted">Базовый тип — вопросы 1–18. Текущая фаза — вопросы 19–36.</p>
+          <div id="basePhase" style="margin-top:8px"></div>
+        </div>
+      </div>
+
+      <details style="margin-top:12px">
+        <summary>Краткие описания типов</summary>
+        <div id="descriptions" style="margin-top:10px"></div>
+      </details>
+
+      <div class="row" style="margin-top:16px; gap:10px; flex-wrap:wrap">
+        <button class="ghost" id="exportPdfBtn" style="flex:1 1 180px">Экспорт в PDF</button>
+        <button class="ok" id="restartBtn" style="flex:1 1 180px">Пройти ещё раз</button>
+        <button class="ghost" id="shareSurveyBtn" style="flex:1 1 180px">Поделиться опросником</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Модалка «Справка» -->
+  <div class="modal" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <div class="inner">
+      <h3 id="helpTitle">О PCM-опроснике</h3>
+      <p class="muted">36 вопросов: базовый тип (1–18), текущая фаза (19–36). Данные — только в вашем браузере. Экспорт PDF — снимок блока результатов.</p>
+      <ul>
+        <li>Шкала 1–5: 1 — «не про меня», 5 — «очень про меня».</li>
+        <li>«Пройти ещё раз» сбрасывает ответы.</li>
+        <li>«Поделиться опросником» — отправляет ссылку на эту страницу.</li>
+      </ul>
+      <div class="row" style="justify-content:flex-end; margin-top:10px">
+        <button class="primary" id="helpCloseBtn">Понятно</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script>
+  /* ===== Данные ===== */
+  const QUESTIONS = [
+    {id:1,text:"Мне важно, чтобы меня любили и принимали.",type:"Harmonizer"},
+    {id:2,text:"Мне важно, чтобы ценили мои знания и компетентность.",type:"Thinker"},
+    {id:3,text:"Мне важно, чтобы уважали мои убеждения и ценности.",type:"Persister"},
+    {id:4,text:"Мне важно, чтобы со мной было легко и весело.",type:"Rebel"},
+    {id:5,text:"Мне важно иметь время и пространство для себя, чтобы пофантазировать.",type:"Imaginer"},
+    {id:6,text:"Мне важно действовать и выигрывать, даже если есть риск.",type:"Promoter"},
+    {id:7,text:"Я часто говорю о чувствах: «я рад», «я переживаю».",type:"Harmonizer"},
+    {id:8,text:"Я чаще говорю о фактах: «результаты такие-то».",type:"Thinker"},
+    {id:9,text:"Часто говорю в формате мнения: «правильно будет вот так».",type:"Persister"},
+    {id:10,text:"Люблю шутить, подколоть, отвечать в игре.",type:"Rebel"},
+    {id:11,text:"Могу молчать, «зависнуть», уйти в своё пространство.",type:"Imaginer"},
+    {id:12,text:"Говорю напористо: «надо сделать прямо сейчас».",type:"Promoter"},
+    {id:13,text:"Меня заряжает тёплое общение и забота.",type:"Harmonizer"},
+    {id:14,text:"Меня заряжает чёткая структура и план.",type:"Thinker"},
+    {id:15,text:"Меня заряжает возможность отстаивать позицию.",type:"Persister"},
+    {id:16,text:"Меня заряжает игра, лёгкость, шутки.",type:"Rebel"},
+    {id:17,text:"Меня заряжает возможность помечтать и побыть одному.",type:"Imaginer"},
+    {id:18,text:"Меня заряжает соревнование и драйв.",type:"Promoter"},
+    {id:19,text:"В стрессе становлюсь обидчивым, эмоциональным.",type:"Harmonizer"},
+    {id:20,text:"В стрессе начинаю всё считать и контролировать.",type:"Thinker"},
+    {id:21,text:"В стрессе становлюсь категоричным, жёстким.",type:"Persister"},
+    {id:22,text:"В стрессе сопротивляюсь и ерничаю.",type:"Rebel"},
+    {id:23,text:"В стрессе выпадаю в апатию, «ничего не хочу».",type:"Imaginer"},
+    {id:24,text:"В стрессе иду в авантюру и риск.",type:"Promoter"},
+    {id:25,text:"Другие видят меня душевным, заботливым.",type:"Harmonizer"},
+    {id:26,text:"Другие видят меня логичным, умным.",type:"Thinker"},
+    {id:27,text:"Другие видят меня упорным, надёжным.",type:"Persister"},
+    {id:28,text:"Другие видят меня весёлым, заводным.",type:"Rebel"},
+    {id:29,text:"Другие видят меня замкнутым, отстранённым.",type:"Imaginer"},
+    {id:30,text:"Другие видят меня харизматичным, пробивным.",type:"Promoter"},
+    {id:31,text:"Фраза «Ты важен для нас» вызывает у меня доверие.",type:"Harmonizer"},
+    {id:32,text:"Признание моих компетенций и знаний вызывает доверие.",type:"Thinker"},
+    {id:33,text:"Уважение моих убеждений и ценностей вызывает доверие.",type:"Persister"},
+    {id:34,text:"Юмор и игра со мной вызывают доверие.",type:"Rebel"},
+    {id:35,text:"Когда дают время и свободу побыть одному — это вызывает доверие.",type:"Imaginer"},
+    {id:36,text:"Вызов «Сможешь ли ты?» включает доверие и мотивацию.",type:"Promoter"}
+  ];
+
+  const TYPE_LABELS = {
+    Harmonizer:"Душевный (Harmonizer)", Thinker:"Логик (Thinker)", Persister:"Упорный (Persister)",
+    Rebel:"Бунтарь (Rebel)", Imaginer:"Мечтатель (Imaginer)", Promoter:"Делатель (Promoter)"
+  };
+
+  const TYPE_HINTS = {
+    Harmonizer:"Ценность — отношения и тепло. Сильные стороны: эмпатия, забота. Риск — обидчивость.",
+    Thinker:"Ценность — логика и структура. Сильные стороны: аналитика, планирование. Риск — микроменеджмент.",
+    Persister:"Ценность — убеждения и надёжность. Сильные стороны: принципиальность, качество. Риск — жёсткость.",
+    Rebel:"Ценность — игра и спонтанность. Сильные стороны: креатив, энергия. Риск — оппозиционность.",
+    Imaginer:"Ценность — пространство и воображение. Сильные стороны: инсайты, спокойствие. Риск — отстранённость.",
+    Promoter:"Ценность — действие и результат. Сильные стороны: решительность, влияние. Риск — импульсивность."
+  };
+
+  /* ===== Рендер вопроса ===== */
+  function makeQuestion(q){
+    const div = document.createElement('div');
+    div.className = 'q';
+    div.innerHTML = `
+      <h3>${q.id}. ${q.text} <span class="tag">${TYPE_LABELS[q.type]}</span></h3>
+      <div class="optwrap" role="radiogroup" aria-label="Шкала 1–5">
+        ${[1,2,3,4,5].map(v => `
+          <label class="opt">
+            <input type="radio" name="q${q.id}" value="${v}">
+            <span>${v}</span>
+          </label>
+        `).join('')}
+      </div>`;
+    return div;
+  }
+
+  function mountBlocks(){
+    const blocks = [
+      {range:[1,6],  el:document.getElementById('block1')},
+      {range:[7,12], el:document.getElementById('block2')},
+      {range:[13,18],el:document.getElementById('block3')},
+      {range:[19,24],el:document.getElementById('block4')},
+      {range:[25,30],el:document.getElementById('block5')},
+      {range:[31,36],el:document.getElementById('block6')},
+    ];
+    blocks.forEach(b=>{
+      for(let i=b.range[0]-1;i<b.range[1];i++){ b.el.appendChild(makeQuestion(QUESTIONS[i])); }
+    });
+  }
+  mountBlocks();
+
+  /* ===== LocalStorage ===== */
+  const KEY='pcm_answers_ru_v1';
+  function saveToLS(){
+    const data={};
+    QUESTIONS.forEach(q=>{
+      const sel=document.querySelector(`input[name="q${q.id}"]:checked`);
+      if(sel) data[q.id]=Number(sel.value);
+    });
+    localStorage.setItem(KEY, JSON.stringify(data));
+    return data;
+  }
+  function loadFromLS(){
+    const raw=localStorage.getItem(KEY);
+    if(!raw) return {};
+    try{return JSON.parse(raw)||{}}catch(_){return {}}
+  }
+  function applyAnswers(obj){
+    QUESTIONS.forEach(q=>{
+      const v=obj[q.id];
+      if(!v) return;
+      const input=document.querySelector(`input[name="q${q.id}"][value="${v}"]`);
+      if(input) input.checked=true;
+    });
+    updateProgress();
+  }
+
+  /* ===== Счётчик (осталось/всего) ===== */
+  function updateProgress(){
+    const total = 36;
+    let filled = 0;
+    QUESTIONS.forEach(q=>{
+      if(document.querySelector(`input[name="q${q.id}"]:checked`)) filled++;
+    });
+    const left = total - filled;
+    document.getElementById('leftNum').textContent = String(left);
+    document.getElementById('totalNum').textContent = String(total);
+  }
+
+  document.body.addEventListener('change', (e)=>{
+    if(e.target && e.target.name && e.target.name.startsWith('q')){
+      saveToLS(); updateProgress();
+    }
+  });
+
+  /* ===== Подсчёт ===== */
+  function calcScores(ans){
+    const totals={Harmonizer:0,Thinker:0,Persister:0,Rebel:0,Imaginer:0,Promoter:0};
+    const base={Harmonizer:0,Thinker:0,Persister:0,Rebel:0,Imaginer:0,Promoter:0};
+    const phase={Harmonizer:0,Thinker:0,Persister:0,Rebel:0,Imaginer:0,Promoter:0};
+    QUESTIONS.forEach(q=>{
+      const v=ans[q.id]||0;
+      totals[q.type]+=v;
+      if(q.id<=18) base[q.type]+=v; else phase[q.type]+=v;
+    });
+    return {totals,base,phase};
+  }
+  function bestOf(dict){ return Object.entries(dict).sort((a,b)=>b[1]-a[1]); }
+
+  function renderBars(container, dict){
+    container.innerHTML=''; const max=Math.max(1, ...Object.values(dict));
+    for(const t of ["Harmonizer","Thinker","Persister","Rebel","Imaginer","Promoter"]){
+      const row=document.createElement('div'); row.className='type';
+      row.innerHTML=`
+        <div><b>${TYPE_LABELS[t]}</b></div>
+        <div>
+          <div class="bar"><span style="width:${(dict[t]/max)*100}%"></span></div>
+          <div class="muted" style="margin-top:4px">${dict[t].toFixed(0)} балл(ов)</div>
+        </div>`;
+      container.appendChild(row);
+    }
+  }
+
+  let LAST_CALC=null;
+  function showResults(sc){
+    const totalsEl=document.getElementById('totals'); renderBars(totalsEl, sc.totals);
+    const baseTop={ type:bestOf(sc.base)[0][0],  score:bestOf(sc.base)[0][1] };
+    const phaseTop={ type:bestOf(sc.phase)[0][0], score:bestOf(sc.phase)[0][1] };
+
+    const bp=document.getElementById('basePhase');
+    bp.innerHTML=`
+      <p><b>Базовый тип:</b> ${TYPE_LABELS[baseTop.type]} <span class="muted">(${baseTop.score} балл(ов))</span></p>
+      <p><b>Текущая фаза:</b> ${TYPE_LABELS[phaseTop.type]} <span class="muted">(${phaseTop.score} балл(ов))</span></p>
+    `;
+
+    const callouts=document.getElementById('callouts');
+    callouts.innerHTML=`
+      <div class="callout">
+        <h4>Ваш базовый тип</h4>
+        <div class="big">${TYPE_LABELS[baseTop.type]}</div>
+        <span class="muted">Баллы: ${baseTop.score}</span>
+      </div>
+      <div class="callout">
+        <h4>Ваша текущая фаза</h4>
+        <div class="big">${TYPE_LABELS[phaseTop.type]}</div>
+        <span class="muted">Баллы: ${phaseTop.score}</span>
+      </div>
+    `;
+
+    const desc=document.getElementById('descriptions'); desc.innerHTML='';
+    for(const key of ["Harmonizer","Thinker","Persister","Rebel","Imaginer","Promoter"]){
+      const p=document.createElement('p'); p.innerHTML=`<b>${TYPE_LABELS[key]}:</b> ${TYPE_HINTS[key]}`; desc.appendChild(p);
+    }
+
+    document.getElementById('results').style.display='block';
+    window.scrollTo({top:document.getElementById('results').offsetTop-8, behavior:'smooth'});
+
+    LAST_CALC={totals:sc.totals, base:sc.base, phase:sc.phase, baseTop, phaseTop};
+  }
+
+  /* ===== Сброс ===== */
+  function resetAll(){
+    localStorage.removeItem(KEY);
+    document.querySelectorAll('input[type="radio"]').forEach(i=>i.checked=false);
+    updateProgress();
+    document.getElementById('results').style.display='none';
+    LAST_CALC=null;
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  /* ===== Тема ===== */
+  const themeToggleBtn=document.getElementById('themeToggleBtn');
+  function applyTheme(theme){ document.documentElement.setAttribute('data-theme', theme); localStorage.setItem('theme', theme); }
+  themeToggleBtn.addEventListener('click', ()=>{
+    const newTheme=document.documentElement.getAttribute('data-theme')==='light' ? 'dark' : 'light';
+    applyTheme(newTheme);
+  });
+
+  /* ===== Масштаб текста ===== */
+  const fontBtn=document.getElementById('fontBtn');
+  function applyFontScale(scale){ document.documentElement.style.setProperty('--fs', scale); localStorage.setItem('fontScale', String(scale)); fontBtn.textContent=scale>1?'Aa+':'Aa'; }
+  fontBtn.addEventListener('click', ()=>{
+    const current=parseFloat(localStorage.getItem('fontScale')||'1');
+    const next=current>=1.2?1:+(current+0.1).toFixed(1);
+    applyFontScale(next);
+  });
+
+  /* ===== Справка ===== */
+  const helpBtn=document.getElementById('helpBtn'), helpModal=document.getElementById('helpModal'), helpCloseBtn=document.getElementById('helpCloseBtn');
+  function openHelp(){ helpModal.style.display='flex'; }
+  function closeHelp(){ helpModal.style.display='none'; }
+  helpBtn.addEventListener('click', openHelp);
+  helpCloseBtn.addEventListener('click', closeHelp);
+  helpModal.addEventListener('click', (e)=>{ if(e.target===helpModal) closeHelp(); });
+  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeHelp(); });
+
+  /* ===== Экспорт PDF ===== */
+  function exportPDF(){
+    const resultsEl=document.getElementById('results');
+    if(resultsEl.style.display==='none'){ alert('Сначала посчитайте результаты.'); return; }
+    const originalTheme=document.documentElement.getAttribute('data-theme'); applyTheme('light');
+    const pdfBtn=document.getElementById('exportPdfBtn'); const originalText=pdfBtn.textContent; pdfBtn.disabled=true; pdfBtn.textContent='Генерация...';
+    html2canvas(resultsEl,{scale:2}).then(canvas=>{
+      const imgData=canvas.toDataURL('image/png'); const { jsPDF }=window.jspdf; const pdf=new jsPDF('p','mm','a4');
+      const pdfW=pdf.internal.pageSize.getWidth(), pdfH=pdf.internal.pageSize.getHeight();
+      const ratio=canvas.width/canvas.height; let imgW=pdfW-20, imgH=imgW/ratio; if(imgH>pdfH-20){imgH=pdfH-20; imgW=imgH*ratio;}
+      const x=(pdfW-imgW)/2, y=10; pdf.text('Результаты PCM-опросника', pdfW/2, 7, {align:'center'}); pdf.addImage(imgData,'PNG',x,y,imgW,imgH); pdf.save('pcm_results.pdf');
+      applyTheme(originalTheme); pdfBtn.disabled=false; pdfBtn.textContent=originalText;
+    }).catch(err=>{ console.error(err); alert('Не удалось создать PDF.'); applyTheme(originalTheme); pdfBtn.disabled=false; pdfBtn.textContent=originalText; });
+  }
+
+  /* ===== Поделиться опросником ===== */
+  async function shareSurvey(){
+    const url=location.href.split('#')[0];
+    const shareData={title:'PCM-опросник (экспресс)', text:'Пройди экспресс PCM-опросник (36 вопросов):', url};
+    if(navigator.share){ try{ await navigator.share(shareData);}catch(e){console.error(e);} }
+    else{
+      try{
+        await navigator.clipboard.writeText(`${shareData.text} ${url}`);
+        const btn=document.getElementById('shareSurveyBtn'); const t=btn.textContent; btn.textContent='Ссылка скопирована!'; setTimeout(()=>btn.textContent=t,2000);
+      }catch(e){ alert(`Ссылка на опросник: ${url}`); }
+    }
+  }
+
+  /* ===== Кнопки ===== */
+  document.getElementById('calcBtn').addEventListener('click', ()=>{
+    const ans=saveToLS(); const filled=Object.keys(ans).length;
+    if(filled<QUESTIONS.length){ alert(`Пожалуйста, ответьте на все 36 вопросов. Заполнено: ${filled}.`); return; }
+    const sc=calcScores(ans); showResults(sc);
+  });
+  document.getElementById('exportPdfBtn').addEventListener('click', exportPDF);
+  document.getElementById('restartBtn').addEventListener('click', resetAll);
+  document.getElementById('shareSurveyBtn').addEventListener('click', shareSurvey);
+
+  /* ===== First load ===== */
+  const savedTheme=localStorage.getItem('theme')||'light'; applyTheme(savedTheme);
+  const savedFont=parseFloat(localStorage.getItem('fontScale')||'1'); applyFontScale(savedFont);
+  applyAnswers(loadFromLS());
+  </script>
+</body>
+</html>
